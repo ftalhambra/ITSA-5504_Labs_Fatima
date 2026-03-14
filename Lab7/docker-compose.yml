@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flask-cloud:1.0
+    container_name: flask-cloud
+    ports:
+      - "5000:5000"   # optional: reach Flask directly (useful for debugging/screens)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  gateway:
+    image: nginx:1.25-alpine
+    container_name: api-gateway
+    depends_on:
+      - flask
+    ports:
+      - "8080:80"     # the gateway will be at http://localhost:8080
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
